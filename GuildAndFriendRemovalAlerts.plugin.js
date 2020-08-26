@@ -1,43 +1,79 @@
 //META{"name":"GuildAndFriendRemovalAlerts","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js"}*//
 
 class GuildAndFriendRemovalAlerts {
-
-	getName() { return "Guild And Friend Removal Alerts"; }
-	getDescription() { return "Alerts you when a guild or friend is removed."; }
-	getVersion() { return "0.3.14"; }
-	getAuthor() { return "Metalloriff"; }
+	getName() {
+		return 'Guild And Friend Removal Alerts';
+	}
+	getDescription() {
+		return 'Alerts you when a guild or friend is removed.';
+	}
+	getVersion() {
+		return '0.3.14';
+	}
+	getAuthor() {
+		return 'Metalloriff';
+	}
 
 	load() {}
 
 	start() {
 		const libLoadedEvent = () => {
-			try{ this.onLibLoaded(); }
-			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+			try {
+				this.onLibLoaded();
+			} catch (err) {
+				console.error(
+					this.getName(),
+					'fatal error, plugin could not be started!',
+					err
+				);
+				try {
+					this.stop();
+				} catch (err) {
+					console.error(this.getName() + '.stop()', err);
+				}
+			}
 		};
 
-		let lib = document.getElementById("NeatoBurritoLibrary");
+		let lib = document.getElementById('NeatoBurritoLibrary');
 		if (!lib) {
-			lib = document.createElement("script");
-			lib.id = "NeatoBurritoLibrary";
-			lib.type = "text/javascript";
-			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
+			lib = document.createElement('script');
+			lib.id = 'NeatoBurritoLibrary';
+			lib.type = 'text/javascript';
+			lib.src =
+				'https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js';
 			document.head.appendChild(lib);
 		}
 
 		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-		if (typeof window.NeatoLib !== "undefined") libLoadedEvent();
-		else lib.addEventListener("load", libLoadedEvent);
+		if (typeof window.NeatoLib !== 'undefined') {
+			libLoadedEvent();
+		} else {
+			lib.addEventListener('load', libLoadedEvent);
+		}
 	}
 
 	get settingFields() {
 		return {
-			guildNotifications: { label: "Display alerts for server removals", type: "bool" },
-			friendNotifications: { label: "Display alerts for friend removals", type: "bool" },
-			windowsNotifications: { label: "Display Windows/OS notifications", type: "bool" },
-			ignoredServers: { label: "Ignored server IDs", type: "string", array: true },
-			color: { label: "Notification background color", type: "color" },
+			guildNotifications: {
+				label: 'Display alerts for server removals',
+				type: 'bool',
+			},
+			friendNotifications: {
+				label: 'Display alerts for friend removals',
+				type: 'bool',
+			},
+			windowsNotifications: {
+				label: 'Display Windows/OS notifications',
+				type: 'bool',
+			},
+			ignoredServers: {
+				label: 'Ignored server IDs',
+				type: 'string',
+				array: true,
+			},
+			color: { label: 'Notification background color', type: 'color' },
 			preview: {
-				type: "custom",
+				type: 'custom',
 				html: `<div class="ra-serveritem">
 				<header class="ra-serveritem-inner">
 					<div class="ra-icon"><img src="/assets/f046e2247d730629309457e902d5c5b3.svg" height="90" width="90"></div>
@@ -48,8 +84,8 @@ class GuildAndFriendRemovalAlerts {
 					</div>
 					<span class="ra-x-button" style="margin-bottom: 9%;">X</span>
 				</header>
-			</div>`
-			}
+			</div>`,
+			},
 		};
 	}
 
@@ -58,8 +94,8 @@ class GuildAndFriendRemovalAlerts {
 			guildNotifications: true,
 			friendNotifications: true,
 			windowsNotifications: true,
-			ignoredServers: "280806472928198656",
-			color: "#7289da"
+			ignoredServers: '280806472928198656',
+			color: '#7289da',
 		};
 	}
 
@@ -73,10 +109,10 @@ class GuildAndFriendRemovalAlerts {
 	}
 
 	save() {
-		NeatoLib.Data.save(this.getName(), "data", {
-			guilds: (this.settings.guildNotifications ? this.allGuilds : []),
-			friends: (this.settings.friendNotifications ? this.allFriends : []),
-			history: this.history
+		NeatoLib.Data.save(this.getName(), 'data', {
+			guilds: this.settings.guildNotifications ? this.allGuilds : [],
+			friends: this.settings.friendNotifications ? this.allFriends : [],
+			history: this.history,
 		});
 	}
 
@@ -85,10 +121,10 @@ class GuildAndFriendRemovalAlerts {
 
 		this.settings = NeatoLib.Settings.load(this);
 
-		const data = NeatoLib.Data.load(this.getName(), "data", {
+		const data = NeatoLib.Data.load(this.getName(), 'data', {
 			guilds: [],
 			friends: [],
-			history: []
+			history: [],
 		});
 
 		this.allGuilds = data.guilds;
@@ -96,21 +132,32 @@ class GuildAndFriendRemovalAlerts {
 
 		this.history = data.history;
 
-		this.guildsModule = NeatoLib.Modules.get("getGuilds");
-		this.friendsModule = NeatoLib.Modules.get("getFriendIDs");
-		this.userModule = NeatoLib.Modules.get("getUser");
+		this.guildsModule = NeatoLib.Modules.get('getGuilds');
+		this.friendsModule = NeatoLib.Modules.get('getFriendIDs');
+		this.userModule = NeatoLib.Modules.get('getUser');
 
 		this.guildsObserver = new MutationObserver(() => this.checkGuilds());
-		this.guildsObserver.observe(document.getElementsByClassName(NeatoLib.getClass("unreadMentionsBar", "scroller"))[0], { childList: true });
+		this.guildsObserver.observe(
+			document.getElementsByClassName(
+				NeatoLib.getClass('unreadMentionsBar', 'scroller')
+			)[0],
+			{ childList: true }
+		);
 
-		document.getElementsByTagName("foreignObject")[0].addEventListener("contextmenu", this.homeContextEvent = e => {
-			let contextMenu = NeatoLib.ContextMenu.get() || NeatoLib.ContextMenu.create([], e);
+		document.getElementsByTagName('foreignObject')[0].addEventListener(
+			'contextmenu',
+			(this.homeContextEvent = (e) => {
+				let contextMenu =
+					NeatoLib.ContextMenu.get() || NeatoLib.ContextMenu.create([], e);
 
-			contextMenu.appendChild(NeatoLib.ContextMenu.createItem("View GFR History", () => {
-				this.showHistory();
-				NeatoLib.ContextMenu.close();
-			}));
-		});
+				contextMenu.appendChild(
+					NeatoLib.ContextMenu.createItem('View GFR History', () => {
+						this.showHistory();
+						NeatoLib.ContextMenu.close();
+					})
+				);
+			})
+		);
 
 		this.checkLoopFunc = setInterval(() => {
 			this.checkGuilds();
@@ -121,7 +168,9 @@ class GuildAndFriendRemovalAlerts {
 	}
 
 	applyCSS() {
-		if (this.styles) this.styles.destroy();
+		if (this.styles) {
+			this.styles.destroy();
+		}
 
 		this.styles = NeatoLib.injectCSS(`
 
@@ -189,16 +238,19 @@ class GuildAndFriendRemovalAlerts {
 	}
 
 	getGuilds() {
-		const guilds = NeatoLib.Modules.get("getGuilds").getGuilds(), arr = [];
+		const guilds = NeatoLib.Modules.get('getGuilds').getGuilds(),
+			arr = [];
 
 		for (let id in guilds) {
-			const guild = guilds[id], ownerUser = NeatoLib.Modules.get("getUser").getUser(guild.ownerId), ownerTag = ownerUser ? ownerUser.tag : null;
+			const guild = guilds[id],
+				ownerUser = NeatoLib.Modules.get('getUser').getUser(guild.ownerId),
+				ownerTag = ownerUser ? ownerUser.tag : null;
 
 			arr.push({
 				id: guild.id,
 				name: guild.name,
 				owner: ownerTag,
-				icon: guild.getIconURL()
+				icon: guild.getIconURL(),
 			});
 		}
 
@@ -207,109 +259,160 @@ class GuildAndFriendRemovalAlerts {
 
 	showHistory() {
 		if (this.history.length == 0) {
-			NeatoLib.showToast("No removals recorded!", "error");
+			NeatoLib.showToast('No removals recorded!', 'error');
 			return;
 		}
 
-		if (!document.getElementById("ra-alertwindow")) document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend", `
+		if (!document.getElementById('ra-alertwindow')) {
+			document
+				.getElementsByClassName(NeatoLib.getClass('app'))[0]
+				.insertAdjacentHTML(
+					'beforeend',
+					`
 		<div id="ra-alertwindow">
 			<div id="ra-modal" onclick="this.parentElement.remove();"></div>
-		</div>`);
+		</div>`
+				);
+		}
 
-		const modal = document.getElementById("ra-modal");
+		const modal = document.getElementById('ra-modal');
 
 		for (let i = 0; i < this.history.length; i++) {
-			if (typeof this.history[i] != "string")
+			if (typeof this.history[i] != 'string') {
 				continue;
-			modal.insertAdjacentHTML("afterbegin", this.history[i]);
-			modal.firstElementChild.getElementsByClassName("ra-x-button")[0].remove();
+			}
+			modal.insertAdjacentHTML('afterbegin', this.history[i]);
+			modal.firstElementChild.getElementsByClassName('ra-x-button')[0].remove();
 		}
 	}
 
 	checkGuilds() {
-		if (!this.settings.guildNotifications) return;
+		if (!this.settings.guildNotifications) {
+			return;
+		}
 
-		const guilds = this.getGuilds(), guildIds = Array.from(guilds, guild => guild.id), app = document.getElementsByClassName(NeatoLib.getClass("app"))[0];
-		if (!guilds.length) return setTimeout(() => this.checkGuilds(), 5000);
+		const guilds = this.getGuilds(),
+			guildIds = Array.from(guilds, (guild) => guild.id),
+			app = document.getElementsByClassName(NeatoLib.getClass('app'))[0];
+		if (!guilds.length) {
+			return setTimeout(() => this.checkGuilds(), 5000);
+		}
 
-		if (typeof this.settings.ignoredServers == "string") this.settings.ignoredServers = this.settings.ignoredServers.split(" ");
+		if (typeof this.settings.ignoredServers == 'string') {
+			this.settings.ignoredServers = this.settings.ignoredServers.split(' ');
+		}
 
 		let save = false;
 
 		for (let i = 0; i < this.allGuilds.length; i++) {
 			const guild = this.allGuilds[i];
 
-			if (this.settings.ignoredServers.includes(guild.id)) continue;
+			if (this.settings.ignoredServers.includes(guild.id)) {
+				continue;
+			}
 
 			if (!guildIds.includes(guild.id)) {
-				if (!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
+				if (!document.getElementById('ra-alertwindow')) {
+					app.insertAdjacentHTML(
+						'beforeend',
+						`
 				<div id="ra-alertwindow">
 					<div id="ra-modal" onclick="this.parentElement.remove();"></div>
-				</div>`);
+				</div>`
+					);
+				}
 
-				const modal = document.getElementById("ra-modal");
+				const modal = document.getElementById('ra-modal');
 
-				modal.insertAdjacentHTML("beforeend", `
+				modal.insertAdjacentHTML(
+					'beforeend',
+					`
 				<div class="ra-serveritem">
 					<header class="ra-serveritem-inner">
-						<div class="ra-icon"><img src="${guild.icon || "/assets/f046e2247d730629309457e902d5c5b3.svg"}" height="90" width="90"></div>
+						<div class="ra-icon"><img src="${
+							guild.icon || '/assets/f046e2247d730629309457e902d5c5b3.svg'
+						}" height="90" width="90"></div>
 						<div style="flex: 1;">
 							<span class="ra-label">${guild.name}</span>
 							<div class="ra-label ra-description">Server no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
 							<div class="ra-label ra-description" style="width:auto;position:absolute;right:30px;">at ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
-							<div class="ra-label ra-description">${guild.owner ? "Owner: " + guild.owner : "Owner unknown"}</div>
+							<div class="ra-label ra-description">${
+								guild.owner ? 'Owner: ' + guild.owner : 'Owner unknown'
+							}</div>
 						</div>
 						<span class="ra-x-button">X</span>
 					</header>
-				</div>`);
+				</div>`
+				);
 
-				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
-					if (modal.children.length <= 1) modal.parentElement.remove();
-					else e.currentTarget.parentElement.parentElement.remove();
+				modal.lastChild.getElementsByClassName('ra-x-button')[0].onclick = (
+					e
+				) => {
+					if (modal.children.length <= 1) {
+						modal.parentElement.remove();
+					} else {
+						e.currentTarget.parentElement.parentElement.remove();
+					}
 				};
 
 				this.history.push(modal.lastElementChild.outerHTML);
 
-				if (this.history.length >= 100)
+				if (this.history.length >= 100) {
 					this.history.splice(0, 1);
+				}
 
-				if (this.settings.windowsNotifications) new Notification(guild.name, {
-					silent: true,
-					body: "Server removed",
-					icon: guild.icon || "/assets/f046e2247d730629309457e902d5c5b3.svg"
-				});
+				if (this.settings.windowsNotifications) {
+					new Notification(guild.name, {
+						silent: true,
+						body: 'Server removed',
+						icon: guild.icon || '/assets/f046e2247d730629309457e902d5c5b3.svg',
+					});
+				}
 
 				save = true;
 			}
 		}
 
-		if (this.allGuilds.length != guilds.length) save = true;
+		if (this.allGuilds.length != guilds.length) {
+			save = true;
+		}
 
 		this.allGuilds = guilds;
 
-		if (save) this.save();
+		if (save) {
+			this.save();
+		}
 	}
 
 	getFriends() {
-		const friends = NeatoLib.Modules.get("getFriendIDs").getFriendIDs(), arr = [];
+		const friends = NeatoLib.Modules.get('getFriendIDs').getFriendIDs(),
+			arr = [];
 
 		for (let i = 0; i < friends.length; i++) {
-			const friend = NeatoLib.Modules.get("getUser").getUser(friends[i]);
-			if (friend) arr.push({
-				id: friend.id,
-				tag: friend.tag,
-				avatar: friend.getAvatarURL()
-			});
+			const friend = NeatoLib.Modules.get('getUser').getUser(friends[i]);
+			if (friend) {
+				arr.push({
+					id: friend.id,
+					tag: friend.tag,
+					avatar: friend.getAvatarURL(),
+				});
+			}
 		}
 
 		return arr;
 	}
 
 	checkFriends() {
-		if (!this.settings.friendNotifications) return;
+		if (!this.settings.friendNotifications) {
+			return;
+		}
 
-		const friends = this.getFriends(), friendIds = Array.from(friends, friend => friend.id), app = document.getElementsByClassName(NeatoLib.getClass("app"))[0];
-		if (!friends.length) return setTimeout(() => this.checkFriends(), 5000);
+		const friends = this.getFriends(),
+			friendIds = Array.from(friends, (friend) => friend.id),
+			app = document.getElementsByClassName(NeatoLib.getClass('app'))[0];
+		if (!friends.length) {
+			return setTimeout(() => this.checkFriends(), 5000);
+		}
 
 		let save = false;
 
@@ -317,17 +420,26 @@ class GuildAndFriendRemovalAlerts {
 			const friend = this.allFriends[i];
 
 			if (!friendIds.includes(friend.id)) {
-				if (!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
+				if (!document.getElementById('ra-alertwindow')) {
+					app.insertAdjacentHTML(
+						'beforeend',
+						`
 				<div id="ra-alertwindow">
 					<div id="ra-modal" onclick="$(this).parent().remove();"></div>
-				</div>`);
+				</div>`
+					);
+				}
 
-				const modal = document.getElementById("ra-modal");
+				const modal = document.getElementById('ra-modal');
 
-				modal.insertAdjacentHTML("beforeend", `
+				modal.insertAdjacentHTML(
+					'beforeend',
+					`
 				<div class="ra-serveritem">
 					<header class="ra-serveritem-inner">
-						<div class="ra-icon"><img src="${friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg"}" height="90" width="90"></div>
+						<div class="ra-icon"><img src="${
+							friend.avatar || '/assets/f046e2247d730629309457e902d5c5b3.svg'
+						}" height="90" width="90"></div>
 						<div style="flex: 1;">
 							<span class="ra-label">${friend.tag}</span>
 							<div class="ra-label ra-description">Friend was removed.</div>
@@ -335,23 +447,33 @@ class GuildAndFriendRemovalAlerts {
 						</div>
 						<span class="ra-x-button">X</span>
 					</header>
-				</div>`);
+				</div>`
+				);
 
-				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
-					if (modal.children.length <= 1) modal.parentElement.remove();
-					else e.currentTarget.parentElement.parentElement.remove();
+				modal.lastChild.getElementsByClassName('ra-x-button')[0].onclick = (
+					e
+				) => {
+					if (modal.children.length <= 1) {
+						modal.parentElement.remove();
+					} else {
+						e.currentTarget.parentElement.parentElement.remove();
+					}
 				};
 
 				this.history.push(modal.lastElementChild.outerHTML);
 
-				if (this.history.length >= 100)
+				if (this.history.length >= 100) {
 					this.history.splice(0, 1);
+				}
 
-				if (this.settings.windowsNotifications) new Notification(friend.tag, {
-					silent: true,
-					body: "Friend removed",
-					icon: friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg"
-				});
+				if (this.settings.windowsNotifications) {
+					new Notification(friend.tag, {
+						silent: true,
+						body: 'Friend removed',
+						icon:
+							friend.avatar || '/assets/f046e2247d730629309457e902d5c5b3.svg',
+					});
+				}
 
 				save = true;
 			}
@@ -361,17 +483,22 @@ class GuildAndFriendRemovalAlerts {
 
 		this.allFriends = friends;
 
-		if (save) this.save();
+		if (save) {
+			this.save();
+		}
 	}
 
 	stop() {
-		if (this.guildsObserver) this.guildsObserver.disconnect();
+		if (this.guildsObserver) {
+			this.guildsObserver.disconnect();
+		}
 
 		clearInterval(this.checkLoopFunc);
 
-		document.getElementsByTagName("foreignObject")[0].removeEventListener("contextmenu", this.homeContextEvent);
+		document
+			.getElementsByTagName('foreignObject')[0]
+			.removeEventListener('contextmenu', this.homeContextEvent);
 
 		this.styles.destroy();
 	}
-
 }
